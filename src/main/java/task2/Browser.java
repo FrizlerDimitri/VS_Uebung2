@@ -6,6 +6,9 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -25,9 +28,11 @@ public class Browser extends JFrame implements ActionListener {
     // Deklaration Ihrer Synchronisations-Hilfsklassen hier:
 
 
-    private Lock monitor = new ReentrantLock();
-    private Condition buttonClicked = monitor.newCondition();
-    private Condition allFinished = monitor.newCondition();
+    private final Lock monitor = new ReentrantLock();
+    private final Condition buttonClicked = monitor.newCondition();
+    private final Condition allFinished = monitor.newCondition();
+
+    private final List<Thread> threadList = new ArrayList<Thread>();
 
 
     public Browser(int downloads) {
@@ -55,6 +60,7 @@ public class Browser extends JFrame implements ActionListener {
 
             Download d = new Download(balken[i], monitor, buttonClicked, allFinished, startButton);
             Thread t = new Thread(d);
+            threadList.add(t);
             t.start();
 
             //balken[i].setValue(50);
@@ -85,12 +91,38 @@ public class Browser extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         // Blockierte Threads jetzt laufen lassen:
 
+
+        monitor.lock();
+        try {
+            buttonClicked.signalAll();
+        } finally {
+            monitor.unlock();
+        }
+
+
         startButton.setEnabled(false);
         startButton.setSelected(false);
         startButton.setText("Downloads laufen...");
 
         // Auf Ende aller Download-Threads warten ... erst dann die Beschriftung ändern
         // Achtung, damit die Oberflaeche "reaktiv" bleibt dies in einem eigenen Runnable ausfuehren!
+
+
+        Thread waitOfEndThread = new Thread(() -> {
+
+            for (Thread t : threadList) {
+                try {
+                    t.join();
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+            startButton.setText("Ende");
+
+
+        });
+        waitOfEndThread.start();
 
 
     }

@@ -3,8 +3,10 @@ package task2;
 
 import javax.swing.*;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 // aktive Klasse
 public class Download implements Runnable {
@@ -31,24 +33,16 @@ public class Download implements Runnable {
 
     @Override
     public void run() {
-        Random random = new Random();
 
+        Random random=new Random();
+        lock.lock();
         try {
-            lock.lock();
-
-            if (startButton.isEnabled()) {
-                buttonClicked.await();
-            } else {
-                if (balken.getValue() < 100) {
-                    updateProgressBar();
-                } else {
-                    allFinished.notify();
-                }
-                buttonClicked.signal();
-
-
+            buttonClicked.await();
+            while (balken.getValue()<100)
+            {
+                updateProgressBar();
+                buttonClicked.await(random.nextInt(2), TimeUnit.SECONDS);
             }
-
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -64,6 +58,8 @@ public class Download implements Runnable {
 
 
         balken.setValue(balken.getValue() + 1);
+
+
     }
 
 
