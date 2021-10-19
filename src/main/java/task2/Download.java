@@ -38,7 +38,7 @@ public class Download implements Runnable {
         lock.lock();
         try {
             buttonClicked.await();
-            while (balken.getValue()<100)
+            while (balken.getValue()<balken.getMaximum())
             {
                 updateProgressBar();
                 buttonClicked.await(random.nextInt(2), TimeUnit.SECONDS);
