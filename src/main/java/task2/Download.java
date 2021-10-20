@@ -3,6 +3,8 @@ package task2;
 
 import javax.swing.*;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -12,28 +14,26 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Download implements Runnable {
 
     private final JProgressBar balken;
-    private Lock lock;
-    Condition buttonClicked;
-    Condition allFinished;
+
     JButton startButton;
+
+    private CountDownLatch countDownLatch;
+    private CyclicBarrier cyclicBarrier;
 
 
     // weitere Attribute zur Synchronisation hier definieren
 
-    public Download(JProgressBar balken, Lock lock, Condition buttonClicked, Condition allFinished, JButton startButton) {
+    public Download(JProgressBar balken, JButton startButton, CountDownLatch countDownLatch, CyclicBarrier cyclicBarrier) {
         this.balken = balken;
-        this.lock = lock;
-        this.buttonClicked = buttonClicked;
-        this.allFinished = allFinished;
         this.startButton = startButton;
-
-
-        // ...
+        this.countDownLatch = countDownLatch;
+        this.cyclicBarrier = cyclicBarrier;
     }
 
     @Override
     public void run() {
 
+        /*
         Random random=new Random();
         lock.lock();
         try {
@@ -50,15 +50,35 @@ public class Download implements Runnable {
             lock.unlock();
         }
 
+        */
+
+
+        try {
+            countDownLatch.await();
+
+            Random random = new Random();
+
+            while (this.balken.getValue() < 100) {
+                updateProgressBar();
+                try {
+                    Thread.sleep(1000 * random.nextInt(10));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
 
     }
 
 
     private void updateProgressBar() {
 
-
         balken.setValue(balken.getValue() + 1);
-
 
     }
 

@@ -10,6 +10,7 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -28,20 +29,24 @@ public class Browser extends JFrame implements ActionListener {
     // Deklaration Ihrer Synchronisations-Hilfsklassen hier:
 
 
-    private final Lock monitor = new ReentrantLock();
-    private final Condition buttonClicked = monitor.newCondition();
-    private final Condition allFinished = monitor.newCondition();
-
     private final List<Thread> threadList = new ArrayList<Thread>();
+
+
+
+
+    private CyclicBarrier cyclicBarrier;
+    private CountDownLatch countDownLatch;
 
 
     public Browser(int downloads) {
         super("Mein Download-Browser");
         this.downloads = downloads;
 
+
+        cyclicBarrier = new CyclicBarrier(downloads);
+        countDownLatch = new CountDownLatch(downloads);
+
         // Initialisierung Ihrer Synchronisations-Hilfsklassen hier:
-
-
         // Aufbau der GUI-Elemente:
         balken = new JProgressBar[downloads];
         JPanel zeilen = new JPanel(new GridLayout(downloads, 1));
@@ -50,7 +55,9 @@ public class Browser extends JFrame implements ActionListener {
         startButton.addActionListener(this);
 
 
+
         for (int i = 0; i < downloads; i++) {
+
             JPanel reihe = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 10));
             balken[i] = new JProgressBar(0, 100);
             balken[i].setPreferredSize(new Dimension(500, 20));
@@ -58,8 +65,9 @@ public class Browser extends JFrame implements ActionListener {
             zeilen.add(reihe);
 
 
-            Download d = new Download(balken[i], monitor, buttonClicked, allFinished, startButton);
+            Download d = new Download(balken[i],startButton,countDownLatch ,cyclicBarrier);
             Thread t = new Thread(d);
+
             threadList.add(t);
             t.start();
 
@@ -92,12 +100,8 @@ public class Browser extends JFrame implements ActionListener {
         // Blockierte Threads jetzt laufen lassen:
 
 
-        monitor.lock();
-        try {
-            buttonClicked.signalAll();
-        } finally {
-            monitor.unlock();
-        }
+
+
 
 
         startButton.setEnabled(false);

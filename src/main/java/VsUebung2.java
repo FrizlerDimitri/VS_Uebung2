@@ -31,8 +31,6 @@ public class VsUebung2 {
 
         */
 
-
-
         Browser.mainTask2(args);
 
     }
