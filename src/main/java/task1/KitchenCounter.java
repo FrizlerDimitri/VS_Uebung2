@@ -48,15 +48,44 @@ public class KitchenCounter {
     }
 
     public void addOne() {
-        counter++;
+
+        try {
+            monitor.lock();
+            if (counter == maxCounter) {
+                full.await();
+            } else {
+                counter++;
+                printKitchen();
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+
+        } finally {
+            monitor.unlock();
+        }
+
     }
 
     public void subOne() {
-        counter--;
+        try {
+            monitor.lock();
+            if (counter == 0) {
+                empty.await();
+            } else {
+                counter--;
+                printKitchen();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            monitor.unlock();
+        }
     }
 
 
     public void printKitchen() {
+
         String display = "";
 
         for (int i = 0, j = 0; i < maxCounter; i++, j++) {
@@ -66,14 +95,7 @@ public class KitchenCounter {
             } else {
                 display += "[ ]";
             }
-
-
         }
-
-
         System.out.println(display);
-
     }
-
-
 }

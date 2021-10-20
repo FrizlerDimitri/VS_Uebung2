@@ -7,7 +7,7 @@ public class VsUebung2 {
 
     public static void main(String[] args) throws InterruptedException {
 
-        /*
+
         //------------------------Task 2 a-----------------------------------------------
         System.out.println("Welcome ....");
 
@@ -29,9 +29,9 @@ public class VsUebung2 {
         Thread.sleep(10000);
         System.out.println("We are closing ....");
 
-        */
 
-        Browser.mainTask2(args);
+
+        //Browser.mainTask2(args);
 
     }
 

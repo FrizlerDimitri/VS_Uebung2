@@ -50,29 +50,6 @@ public class Waiter implements Runnable {
 
     private void put() throws InterruptedException {
 
-        Lock monitor = counter.getMonitor();
-
-        try {
-
-
-            monitor.lock();
-            if (counter.getCounter() == counter.getMaxCounter()) {
-                counter.getFull().await();
-            } else {
-
-                counter.addOne();
-                System.out.println("Waiter : " + name + " delivered your meal");
-                counter.printKitchen();
-
-                //full.signalAll();
-
-
-            }
-
-        } finally {
-            monitor.unlock();
-        }
-
-
+        counter.addOne();
     }
 }

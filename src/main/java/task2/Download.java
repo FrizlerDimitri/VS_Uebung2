@@ -4,11 +4,6 @@ package task2;
 import javax.swing.*;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 // aktive Klasse
 public class Download implements Runnable {
@@ -17,17 +12,16 @@ public class Download implements Runnable {
 
     JButton startButton;
 
-    private CountDownLatch countDownLatch;
-    private CyclicBarrier cyclicBarrier;
-
+    private CountDownLatch buttonPressed;
+    private CountDownLatch downloadFinished;
 
     // weitere Attribute zur Synchronisation hier definieren
 
-    public Download(JProgressBar balken, JButton startButton, CountDownLatch countDownLatch, CyclicBarrier cyclicBarrier) {
+    public Download(JProgressBar balken, JButton startButton, CountDownLatch buttonPressed, CountDownLatch downloadFinished) {
         this.balken = balken;
         this.startButton = startButton;
-        this.countDownLatch = countDownLatch;
-        this.cyclicBarrier = cyclicBarrier;
+        this.buttonPressed = buttonPressed;
+        this.downloadFinished = downloadFinished;
     }
 
     @Override
@@ -54,19 +48,20 @@ public class Download implements Runnable {
 
 
         try {
-            countDownLatch.await();
+            buttonPressed.await();
 
             Random random = new Random();
 
             while (this.balken.getValue() < 100) {
                 updateProgressBar();
                 try {
-                    Thread.sleep(1000 * random.nextInt(10));
+                    Thread.sleep(1000 * random.nextInt(2));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
 
+            downloadFinished.countDown();
 
         } catch (InterruptedException e) {
             e.printStackTrace();
